@@ -9,10 +9,16 @@ module Rack
     REACT_VERSION        = '15.5.4'
     REACT_DOM_VERSION    = '15.5.4'
 
+    DEFAULT_HEADERS = {
+      'Accept' => 'application/json',
+      'Content-Type' => 'application/json'
+    }.freeze
+
     include ERB::Util
 
-    def initialize(endpoint:)
+    def initialize(endpoint:, headers: {})
       @endpoint = endpoint
+      @headers = headers.merge(DEFAULT_HEADERS)
       @template = ERB.new(open(__FILE__).read.split("__END__\n").last)
     end
 
@@ -32,6 +38,10 @@ module Rack
 
     def endpoint
       @endpoint
+    end
+
+    def headers
+      @headers
     end
 
     def graphiql_version
@@ -122,10 +132,7 @@ __END__
     function graphQLFetcher(graphQLParams) {
       return fetch(fetchURL, {
         method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+        headers: <%= JSON.pretty_generate(headers) %>,
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
